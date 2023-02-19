@@ -1,0 +1,72 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-wrapper {
+  height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+  width: 525px;
+  background-image: url(../images/pitch.png);
+  background-position: center;
+  background-size: cover;
+  background-size: 523px 698px;
+  background-repeat: no-repeat;
+}
+
+.grid div {
+  /* border: 1px solid lightgrey; */
+  height: 35px;
+  width: 35px;
+}
+
+.modric-top {
+  background-image: url(../images/modric_top.png);
+  background-size: 60px 35px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.modric-bottom {
+  background-image: url(../images/modric_bottom.png);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 60px 35px;
+}
+
+.ship {
+  background-color: blue;
+}
+
+.missile {
+  background-image: url(../images/football.png);
+  background-size: cover;
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.bomb {
+  background-image: url(../images/var.png);
+  background-size: cover;
+  background-size: 35px 35px;
+}
