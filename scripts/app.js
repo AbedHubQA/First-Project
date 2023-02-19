@@ -26,9 +26,11 @@ function init() {
   // TODO Ship moving to bottom causing game over
   // TODO Bombs only dropping from lowermost cell of ship column
   // TODO Goalkeepers
+  // TODO Animations (particularly for the meeting-in-the-middle problem)
   // TODO Audio
   // TODO Level difficulty progression (speed/bomb frequency/goalkeepers being perm vs. destroyable)
   // TODO Adding goals
+  // TODO Consider refactoring to make use of Classes for Projectiles (=> Bomb/=> Missile), Ship, and User
 
   function startGame() {
     startBtn.disabled = true
