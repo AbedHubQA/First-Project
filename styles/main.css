@@ -24,11 +24,11 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
-  width: 525px;
+  width: 665px;
   background-image: url(../images/pitch.png);
   background-position: center;
   background-size: cover;
-  background-size: 523px 698px;
+  background-size: 663px 698px;
   background-repeat: no-repeat;
 }
 
@@ -54,7 +54,11 @@ body {
 }
 
 .ship {
-  background-color: blue;
+  background-image: url(../images/fifa.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 10px;
 }
 
 .missile {

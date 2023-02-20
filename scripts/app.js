@@ -2,7 +2,7 @@ function init() {
 
   const grid = document.querySelector('.grid')
   const startBtn = document.querySelector('.start')
-  const width = 15
+  const width = 19
   const height = 20
   const cellCount = width * height
   const cells = []
@@ -11,18 +11,17 @@ function init() {
   let bombDropInterval // ! Why does it claim this? See ln 36.
   let shipInterval
   let collisionInterval // ! Why does it claim this? See ln 172.
-  const userStartingPosition = 292
+  const userStartingPosition = 370
   let userCurrentPosition = userStartingPosition
   const shipStartingPosition = 37
   let shipCurrentPosition = shipStartingPosition
   let leftToRight = true
-  let shipArray = [31, 32, 33, 35, 37, 38, 39, 41, 42, 43, 46, 50, 52, 56, 58, 61, 62, 65, 67, 68, 71, 72, 73, 76, 80, 82, 86, 88, 91, 95, 97, 101, 103]
+  let shipArray = [41, 42, 43, 45, 47, 48, 49, 51, 52, 53, 60, 64, 66, 70, 72, 79, 80, 83, 85, 86, 89, 90, 91, 98, 102, 104, 108, 110, 117, 121, 123, 127, 129]
 
   createGame()
 
   // TODO Ship moving to bottom causing game over
   // TODO Lives
-  // TODO Bombs only dropping from lowermost cell of ship column
   // TODO Goalkeepers
   // TODO Animations (particularly for the meeting-in-the-middle problem)
   // TODO Audio
@@ -34,8 +33,8 @@ function init() {
     startBtn.disabled = true
     moveShip()
     bombDropInterval = setInterval(() => {
-      if (shipArray.length  > 0) {
-      dropBomb()
+      if (shipArray.length > 0) {
+        dropBomb()
       }
     }, 1000)
     collisionChecker()
@@ -83,7 +82,7 @@ function init() {
     }
     addShip()
     // console.log(shipArray)
-    shipInterval = setTimeout(moveShip, 500)
+    shipInterval = setTimeout(moveShip, 1000)
   }
 
 
@@ -100,7 +99,24 @@ function init() {
   }
 
   function dropBomb() {
-    let bombPosition = shipArray[Math.floor(Math.random() * shipArray.length)] + width
+    let realisticBombers = []
+    let shipColumns = {}
+    shipArray.forEach(ship => {
+      for (let i = 0; i < width; i++) {
+        if (ship % width === i) {
+          shipColumns[`Column${i}`] = []
+          shipColumns[`Column${i}`].push(ship)
+        }
+      }
+      // console.log(shipColumns)
+    })
+    for (const key in shipColumns) {
+      let tempArr = shipColumns[key]
+      // console.log(tempArr)
+      realisticBombers.push(tempArr[0])
+    }
+    console.log(realisticBombers)
+    let bombPosition = realisticBombers[Math.floor(Math.random() * realisticBombers.length)] + width
     addBomb(bombPosition)
     const bombMoveInterval = setInterval(() => {
       removeBomb(bombPosition)
@@ -203,7 +219,6 @@ function init() {
           clearInterval(cell.getAttribute('missile-interval-id'))
           score += 100
           console.log('Score ->', score)
-          clearInterval(shipInterval)
           // ! Need to consider end level where ship array is empty
         }
         // Missile and bombs clashing mid-flight — same cell
@@ -219,6 +234,8 @@ function init() {
         // Missile and bombs clashing mid-flight — one cell apart
         if (currentCellDataIndex >= width) {
           if ((cell.classList.contains('missile')) && (aboveCell.classList.contains('bomb'))) {
+            // ! Perhaps a timeout here to delay the impact?
+            // ! Animation on middle cell
             aboveCell.classList.remove('bomb')
             cell.classList.remove('missile')
             clearInterval(cell.getAttribute('missile-interval-id'))
