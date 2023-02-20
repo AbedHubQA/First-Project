@@ -15,15 +15,13 @@ function init() {
   let userCurrentPosition = userStartingPosition
   const shipStartingPosition = 37
   let shipCurrentPosition = shipStartingPosition
-  let movingRight = true
-  const shipArray = []
+  let leftToRight = true
+  let shipArray = [31, 32, 33, 35, 37, 38, 39, 41, 42, 43, 46, 50, 52, 56, 58, 61, 62, 65, 67, 68, 71, 72, 73, 76, 80, 82, 86, 88, 91, 95, 97, 101, 103]
 
   createGame()
 
-  // TODO Lives
-  // TODO Ship formation as an array
-  // TODO Ship moving down
   // TODO Ship moving to bottom causing game over
+  // TODO Lives
   // TODO Bombs only dropping from lowermost cell of ship column
   // TODO Goalkeepers
   // TODO Animations (particularly for the meeting-in-the-middle problem)
@@ -36,7 +34,9 @@ function init() {
     startBtn.disabled = true
     moveShip()
     bombDropInterval = setInterval(() => {
+      if (shipArray.length  > 0) {
       dropBomb()
+      }
     }, 1000)
     collisionChecker()
     document.addEventListener('keydown', userAction)
@@ -60,35 +60,47 @@ function init() {
 
   function moveShip() {
     removeShip()
-    if (movingRight) {
-      if (shipCurrentPosition % width !== width - 1) {
-        shipCurrentPosition++
+    // To determine if any of the array values appear in the rightmost column
+    let rightEdge = shipArray.filter(ship => ship % width === width - 1)
+    // To determine if any of the array values appear in the leftmost column
+    let leftEdge = shipArray.filter(ship => ship % width === 0)
+    if (leftToRight) {
+      if (rightEdge.length < 1) {
+        shipArray = shipArray.map(ship => ship = ship + 1)
+        // console.log(shipArray)
       } else {
-        movingRight = false
+        shipArray = shipArray.map(ship => ship = ship + width + 1)
+        leftToRight = false
       }
     }
-    if (!movingRight) {
-      if (shipCurrentPosition % width !== 0) {
-        shipCurrentPosition--
+    if (!leftToRight) {
+      if (leftEdge.length < 1) {
+        shipArray = shipArray.map(ship => ship = ship - 1)
       } else {
-        shipCurrentPosition++
-        movingRight = true
+        shipArray = shipArray.map(ship => ship = ship + width)
+        leftToRight = true
       }
     }
     addShip()
-    shipInterval = setTimeout(moveShip, 200)
+    // console.log(shipArray)
+    shipInterval = setTimeout(moveShip, 500)
   }
 
+
   function addShip() {
-    cells[shipCurrentPosition].classList.add('ship')
+    shipArray.forEach(ship => {
+      cells[ship].classList.add('ship')
+    })
   }
 
   function removeShip() {
-    cells[shipCurrentPosition].classList.remove('ship')
+    shipArray.forEach(ship => {
+      cells[ship].classList.remove('ship')
+    })
   }
 
   function dropBomb() {
-    let bombPosition = shipCurrentPosition + width
+    let bombPosition = shipArray[Math.floor(Math.random() * shipArray.length)] + width
     addBomb(bombPosition)
     const bombMoveInterval = setInterval(() => {
       removeBomb(bombPosition)
@@ -172,21 +184,29 @@ function init() {
   function collisionChecker() {
     const allCells = document.querySelectorAll('.cell')
     collisionInterval = setInterval(() => {
+
       allCells.forEach(cell => {
         currentCellDataIndex = parseInt(cell.getAttribute('data-index'))
         aboveCellDataIndex = currentCellDataIndex - width
         const aboveCell = document.querySelector(`[data-index="${aboveCellDataIndex}"]`)
         // Missile hit on ship
-        // if ((cell.classList.contains('ship')) && (cell.classList.contains('missile'))) {
-        //   clearInterval(shipInterval)
-        //   clearInterval(bombDropInterval)
-        //   cell.classList.remove('ship')
-        //   cell.classList.remove('missile')
-        //   clearInterval(cell.getAttribute('missile-interval-id'))
-        //   score += 100
-        //   console.log('Score ->', score)
-        // }
-        // Missile and bombs clashing mid-flight
+        if ((cell.classList.contains('ship')) && (cell.classList.contains('missile'))) {
+          // Find the cell where the collision occurred
+          let getRemoveIndex = cell.getAttribute('data-index')
+          // Store the index number of the cell that corresponds to the ship array
+          let removeIndex = shipArray.indexOf(Number(getRemoveIndex))
+          // Remove the element from the ship array that has been hit
+          shipArray.splice(removeIndex, 1)
+          // ! Need to refactor this -> clearInterval(bombDropInterval)
+          cell.classList.remove('ship')
+          cell.classList.remove('missile')
+          clearInterval(cell.getAttribute('missile-interval-id'))
+          score += 100
+          console.log('Score ->', score)
+          clearInterval(shipInterval)
+          // ! Need to consider end level where ship array is empty
+        }
+        // Missile and bombs clashing mid-flight — same cell
         if ((cell.classList.contains('missile')) && (cell.classList.contains('bomb'))) {
           cell.classList.remove('bomb')
           cell.classList.remove('missile')
@@ -195,7 +215,8 @@ function init() {
           score += 50
           console.log('Score ->', score)
           console.log('first spot!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        } 
+        }
+        // Missile and bombs clashing mid-flight — one cell apart
         if (currentCellDataIndex >= width) {
           if ((cell.classList.contains('missile')) && (aboveCell.classList.contains('bomb'))) {
             aboveCell.classList.remove('bomb')
@@ -207,6 +228,7 @@ function init() {
             console.log('second spot!')
           }
         }
+        // Bomb hit on user
         if ((cell.classList.contains('bomb')) && ((cell.classList.contains('modric-top')) || (cell.classList.contains('modric-top')))) {
           cell.classList.remove('bomb')
           clearInterval(cell.getAttribute('bomb-interval-id'))
