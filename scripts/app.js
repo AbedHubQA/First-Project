@@ -15,13 +15,14 @@ function init() {
   let score = 0
   let highscore = localStorage.getItem('highscore')
   highScoreText.innerText = highscore
-  let lives = 30
-  let bombDropInterval // ! Why does it claim this?
-  let shipInterval // ! Why does it claim this?
-  let collisionInterval // ! Why does it claim this?
+  let lives = 3
+  let bombDropInterval
+  let shipInterval
+  let collisionInterval 
   const userStartingPosition = 370
   let userCurrentPosition = userStartingPosition
   let leftToRight = true
+  let missileActive = false
   let shipArray = [41, 42, 43, 45, 47, 48, 49, 51, 52, 53, 60, 64, 66, 70, 72, 79, 80, 83, 85, 86, 89, 90, 91, 98, 102, 104, 108, 110, 117, 121, 123, 127, 129]
 
   createGame()
@@ -39,6 +40,7 @@ function init() {
     startBombing()
     collisionChecker()
     document.addEventListener('keydown', userAction)
+    currLives.innerText = '❤️'.repeat(lives)
   }
 
   function createGame() {
@@ -59,7 +61,7 @@ function init() {
 
   function moveShip() {
 
-    shipInterval = setTimeout(moveShip, 500)
+    shipInterval = setTimeout(moveShip, 750)
 
 
 
@@ -77,7 +79,9 @@ function init() {
         shipArray = shipArray.map(ship => ship = ship + width + 1)
         leftToRight = false
         // To determine if any of the array values appear in the user rows
-        let lowestRow = shipArray.filter(ship => ship > (cellCount - (2 * width)))
+        let lowestRow = shipArray.filter(ship => ship >= (cellCount - (2 * width)))
+        console.log(lowestRow)
+
         if (lowestRow.length > 0) {
           // clearInterval(shipInterval)
           endGameDefeat()
@@ -92,7 +96,8 @@ function init() {
         shipArray = shipArray.map(ship => ship = ship + width)
         leftToRight = true
         // To determine if any of the array values appear in the user rows
-        let lowestRow = shipArray.filter(ship => ship > (cellCount - (2 * width)))
+        let lowestRow = shipArray.filter(ship => ship >= (cellCount - (2 * width)))
+        console.log(lowestRow)
         if (lowestRow.length > 0) {
           // clearInterval(shipInterval)
           endGameDefeat()
@@ -164,24 +169,28 @@ function init() {
   }
 
   function fireMissile() {
+    if (missileActive) {
+      console.log('missile blocked')
+      return
+    }
+    missileActive = true
+    console.log('missile okay')
+    setTimeout(() => {
+      missileActive = false
+    }, 300)
     // Initially had the below as a global variable, but this was clashing with each 'fire'
     let missilePosition = userCurrentPosition - width
-    // addMissile(missilePosition)
     // Initially had the below as a global variable, but this was clashing with each 'fire'
     const missileInterval = setInterval(() => {
-      if (missilePosition) {
+      if (missilePosition || missilePosition === 0) {
         removeMissile(missilePosition)
       }
-      // addMissile(missilePosition)
-
-
       missilePosition = missilePosition - width
       if (missilePosition >= 0) {
         addMissile(missilePosition, missileInterval)
       } else {
         clearInterval(missileInterval)
       }
-      console.log(missileInterval)
     }, 200)
   }
 
@@ -283,7 +292,7 @@ function init() {
           }
         }
         // Bomb hit on user
-        if ((cell.classList.contains('bomb')) && ((cell.classList.contains('modric-top')) || (cell.classList.contains('modric-top')))) {
+        if ((cell.classList.contains('bomb')) && ((cell.classList.contains('modric-top')) || (cell.classList.contains('modric-bottom')))) {
           // Find the cell where the collision occurred
           let getRemoveIndex = cell.getAttribute('data-index')
           clearInterval(cell.getAttribute('bomb-interval-id'))
@@ -317,7 +326,6 @@ function init() {
   }
 
   function endGameVictory() {
-    console.log('You win!')
     document.removeEventListener('keydown', userAction)
     // console.log(shipInterval)
     // console.log(bombDropInterval)
@@ -332,6 +340,11 @@ function init() {
         clearInterval(cell.getAttribute('bomb-interval-id'))
       }
     })
+    if (score > highscore) {
+      highscore = console.log
+      localStorage.setItem('highscore', score)
+      highscore.innerText = localStorage.getItem('highscore')
+    }
 
   }
 
