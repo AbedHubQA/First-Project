@@ -9,13 +9,40 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-image: url(../images/vatreni.gif);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.audio-and-highscore {
+    display: flex;
+    justify-content: space-around;
+    width: 700px;
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .grid-wrapper {
-  height: 90vh;
+  max-height: 90vh;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.start {
+  margin: 20px;
 }
 
 .grid {
@@ -30,6 +57,8 @@ body {
   background-size: cover;
   background-size: 663px 698px;
   background-repeat: no-repeat;
+  border-radius: 10px;
+  margin: 20px;
 }
 
 .grid div {
@@ -54,7 +83,7 @@ body {
 }
 
 .ship {
-  background-image: url(../images/fifa.jpg);
+  background-image: url(../images/blattergif.gif);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -73,4 +102,10 @@ body {
   background-image: url(../images/var.png);
   background-size: cover;
   background-size: 35px 35px;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: space-around;
+  width: 700px;
 }
