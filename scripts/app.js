@@ -345,7 +345,6 @@ function init() {
       localStorage.setItem('highscore', score)
       highscore.innerText = localStorage.getItem('highscore')
     }
-
   }
 
   startBtn.addEventListener('click', startGame)
