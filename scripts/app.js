@@ -41,7 +41,7 @@ function init() {
     startBtn.disabled = true
     createGame()
     if (level === 1) {
-      // moveShip(1000)
+      moveShip(1000)
       score = 0
       currScore.innerText = Number(score).toLocaleString()
       startBombing(1500)
