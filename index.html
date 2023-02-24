@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Space Invaders!</title>
+  <title>FIFA Invaders!</title>
   <link rel="stylesheet" href="styles/main.css">
   <script src="./scripts/app.js" charset="utf-8"></script>
 </head>
@@ -16,41 +16,37 @@
 
   <main>
 
-    <section class="audio-and-highscore">
-
-      <div class="audio">
-        <button class="audio-button">Audio</button>
-      </div>
-
-      <div class="highscore">High Score: <span class="highscore-value"></span></div>
-
-      </div>
-
-    </section>
-
     <section class="game">
-
-      <div class="start">
-
-        <button class="start-button">Start!</button>
-
-      </div>
 
       <div class="grid-wrapper">
 
-        <div class="grid">
+        <div class="goal-holder"></div>
 
-        </div>
+        <div class="grid"></div>
 
       </div>
 
     </section>
 
-    <section class="game-stats">
+    <section class="controls-and-scores">
 
-      <div class="lives"> <span class="current-lives"></span></div>
+      <div class="audio-and-start">
 
-      <div class="score">Score: <span class="score-value"></span>0</div>
+        <button class="start-button">Start!</button>
+
+        <button class="audio-button audio-button-mute"></button>
+
+      </div>
+
+      <div class="info-stats">
+
+      <div class="highscore">High Score: <span class="highscore-value">—</span></div>
+
+      <div class="lives">Lives: <span class="current-lives">—</span></div>
+
+      <div class="score">Current Score: <span class="score-value">—</span></div>
+
+    </div>
 
     </section>
 

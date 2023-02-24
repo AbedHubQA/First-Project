@@ -1,43 +1,57 @@
 function init() {
 
   const grid = document.querySelector('.grid')
-  // const allCells = document.querySelectorAll('.cell')
+  const gridWrapper = document.querySelector('.grid-wrapper')
   const startBtn = document.querySelector('.start-button')
   const audioBtn = document.querySelector('.audio-button')
   const currScore = document.querySelector('.score-value')
   const highScoreText = document.querySelector('.highscore-value')
   const currLives = document.querySelector('.current-lives')
+  const goalFlash = document.querySelector('.goal-holder')
+  const body = document.querySelector('body')
+  const controlsAndScores = document.querySelector('.controls-and-scores')
+  const game = document.querySelector('.game')
 
   const width = 19
   const height = 20
   const cellCount = width * height
-  const cells = []
+  let cells = []
   let score = 0
   let highscore = localStorage.getItem('highscore')
-  highScoreText.innerText = highscore
-  let lives = 3
+  highScoreText.innerText = Number(highscore).toLocaleString()
+  let lives = 5
   let bombDropInterval
   let shipInterval
-  let collisionInterval 
+  let collisionInterval
   const userStartingPosition = 370
   let userCurrentPosition = userStartingPosition
   let leftToRight = true
   let missileActive = false
-  let shipArray = [41, 42, 43, 45, 47, 48, 49, 51, 52, 53, 60, 64, 66, 70, 72, 79, 80, 83, 85, 86, 89, 90, 91, 98, 102, 104, 108, 110, 117, 121, 123, 127, 129]
-
-  createGame()
-
-  // TODO Goalkeepers
-  // TODO Animations (particularly for the meeting-in-the-middle problem)
-  // TODO Audio
-  // TODO Level difficulty progression (speed/bomb frequency/goalkeepers being perm vs. destroyable)
-  // TODO Adding goals
-  // TODO Consider refactoring to make use of Classes for Projectiles (=> Bomb/=> Missile), Ship, and User
+  let shipArray = [22, 23, 24, 26, 28, 29, 30, 32, 33, 34, 41, 45, 47, 51, 53, 60, 61, 64, 66, 67, 70, 71, 72, 79, 83, 85, 89, 91, 98, 102, 104, 108, 110]
+  let level = 1
+  let listIntervals = []
+  let apartScorer = false
+  let overlapScorer = false
+  let goalScored = false
+  let shakeTimeout
 
   function startGame() {
+    startSlider()
+    startBtn.style.display = "none"
     startBtn.disabled = true
-    moveShip()
-    startBombing()
+    createGame()
+    if (level === 1) {
+      // moveShip(1000)
+      score = 0
+      currScore.innerText = Number(score).toLocaleString()
+      startBombing(1500)
+    } else if (level === 2) {
+      moveShip(750)
+      startBombing(1250)
+    } else if (level > 2) {
+      moveShip(50)
+      startBombing(75)
+    }
     collisionChecker()
     document.addEventListener('keydown', userAction)
     currLives.innerText = '❤️'.repeat(lives)
@@ -59,54 +73,44 @@ function init() {
     }
   }
 
-  function moveShip() {
-
-    shipInterval = setTimeout(moveShip, 750)
-
-
-
-
-    removeShip()
-    // To determine if any of the array values appear in the rightmost column
-    let rightEdge = shipArray.filter(ship => ship % width === width - 1)
-    // To determine if any of the array values appear in the leftmost column
-    let leftEdge = shipArray.filter(ship => ship % width === 0)
-
-    if (leftToRight) {
-      if (rightEdge.length < 1) {
-        shipArray = shipArray.map(ship => ship = ship + 1)
-      } else {
-        shipArray = shipArray.map(ship => ship = ship + width + 1)
-        leftToRight = false
-        // To determine if any of the array values appear in the user rows
-        let lowestRow = shipArray.filter(ship => ship >= (cellCount - (2 * width)))
-        console.log(lowestRow)
-
-        if (lowestRow.length > 0) {
-          // clearInterval(shipInterval)
-          endGameDefeat()
-          // return
+  function moveShip(intTime) {
+    shipInterval = setInterval(() => {
+      removeShip()
+      // To determine if any of the array values appear in the rightmost column
+      let rightEdge = shipArray.filter(ship => ship % width === width - 1)
+      // To determine if any of the array values appear in the leftmost column
+      let leftEdge = shipArray.filter(ship => ship % width === 0)
+      if (leftToRight) {
+        if (rightEdge.length < 1) {
+          shipArray = shipArray.map(ship => ship = ship + 1)
+        } else {
+          shipArray = shipArray.map(ship => ship = ship + width + 1)
+          leftToRight = false
+          // To determine if any of the array values appear in the user rows
+          let lowestRow = shipArray.filter(ship => ship > (cellCount - (2 * width)))
+          if (lowestRow.length > 0) {
+            endGameDefeat()
+            return
+          }
         }
       }
-    }
-    if (!leftToRight) {
-      if (leftEdge.length < 1) {
-        shipArray = shipArray.map(ship => ship = ship - 1)
-      } else {
-        shipArray = shipArray.map(ship => ship = ship + width)
-        leftToRight = true
-        // To determine if any of the array values appear in the user rows
-        let lowestRow = shipArray.filter(ship => ship >= (cellCount - (2 * width)))
-        console.log(lowestRow)
-        if (lowestRow.length > 0) {
-          // clearInterval(shipInterval)
-          endGameDefeat()
-          // return
+      if (!leftToRight) {
+        if (leftEdge.length < 1) {
+          shipArray = shipArray.map(ship => ship = ship - 1)
+        } else {
+          shipArray = shipArray.map(ship => ship = ship + width)
+          leftToRight = true
+          // To determine if any of the array values appear in the user rows
+          let lowestRow = shipArray.filter(ship => ship >= (cellCount - (2 * width)))
+          if (lowestRow.length > 0) {
+            endGameDefeat()
+            return
+          }
         }
       }
-    }
-    addShip()
-
+      addShip()
+      listIntervals.push(shipInterval)
+    }, intTime)
   }
 
 
@@ -122,12 +126,12 @@ function init() {
     })
   }
 
-  function startBombing() {
+  function startBombing(intTime) {
     bombDropInterval = setInterval(() => {
       if (shipArray.length > 0) {
         dropBomb()
       }
-    }, 1500)
+    }, intTime)
   }
 
   function dropBomb() {
@@ -141,17 +145,19 @@ function init() {
         }
       }
     })
+    console.log(shipColumns)
     for (const key in shipColumns) {
       let tempArr = shipColumns[key]
       realisticBombers.push(tempArr[0])
     }
-    let bombPosition = realisticBombers[Math.floor(Math.random() * realisticBombers.length)] + width
-    addBomb(bombPosition)
+    let bombPosition = realisticBombers[Math.floor(Math.random() * realisticBombers.length)]
+    // addBomb(bombPosition)
     const bombMoveInterval = setInterval(() => {
       removeBomb(bombPosition)
       bombPosition += width
       if (bombPosition < cellCount) {
         addBomb(bombPosition, bombMoveInterval)
+        listIntervals.push(bombMoveInterval)
       } else {
         clearInterval(bombMoveInterval)
       }
@@ -170,14 +176,12 @@ function init() {
 
   function fireMissile() {
     if (missileActive) {
-      console.log('missile blocked')
       return
     }
     missileActive = true
-    console.log('missile okay')
     setTimeout(() => {
       missileActive = false
-    }, 300)
+    }, 450)
     // Initially had the below as a global variable, but this was clashing with each 'fire'
     let missilePosition = userCurrentPosition - width
     // Initially had the below as a global variable, but this was clashing with each 'fire'
@@ -188,6 +192,7 @@ function init() {
       missilePosition = missilePosition - width
       if (missilePosition >= 0) {
         addMissile(missilePosition, missileInterval)
+        listIntervals.push(missileInterval)
       } else {
         clearInterval(missileInterval)
       }
@@ -208,9 +213,7 @@ function init() {
     const right = 39
     const left = 37
     const space = 32
-
     removeUser()
-
     if (e.keyCode === right && userCurrentPosition % width !== width - 1) {
       userCurrentPosition++
     } else if (e.keyCode === left && userCurrentPosition % width !== 0) {
@@ -236,12 +239,31 @@ function init() {
     cells[userCurrentPosition].classList.remove('modric-bottom')
   }
 
+  function shakeBody() {
+    body.classList.add('shake')
+    clearTimeout(shakeTimeout)
+    shakeTimeout = setTimeout(() => {
+      body.classList.remove('shake')
+    }, 1500)
+  }
+
+  function goalAnimation() {
+    if (!goalFlash.classList.contains('goal')) {
+      goalFlash.classList.remove('goal')
+      goalFlash.classList.add('goal')
+      setTimeout(() => {
+        goalFlash.classList.remove('goal')
+      }, 3000)
+    }
+  }
+
   function collisionChecker() {
-
     collisionInterval = setInterval(() => {
-
+      if (shipArray.length === 0) {
+        endGameVictory()
+        return
+      }
       const allCells = document.querySelectorAll('.cell')
-
       allCells.forEach(cell => {
         currentCellDataIndex = parseInt(cell.getAttribute('data-index'))
         aboveCellDataIndex = currentCellDataIndex - width
@@ -258,37 +280,48 @@ function init() {
           clearInterval(cell.getAttribute('missile-interval-id'))
           removeMissile(getRemoveIndex)
           score += 100
-          currScore.innerText = score
-          if (shipArray.length === 0) {
-            endGameVictory()
-          }
+          currScore.innerText = Number(score).toLocaleString()
+          cell.classList.add('shipHit')
+          setTimeout(() => {
+            cell.classList.remove('shipHit')
+          }, 1000)
         }
         // Missile and bombs clashing mid-flight — same cell
-        if ((cell.classList.contains('missile')) && (cell.classList.contains('bomb'))) {
+        if ((cell.classList.contains('missile')) && (cell.classList.contains('bomb')) && !overlapScorer) {
+          overlapScorer = true
           // Find the cell where the collision occurred
           let getRemoveIndex = cell.getAttribute('data-index')
           clearInterval(cell.getAttribute('missile-interval-id'))
           clearInterval(cell.getAttribute('bomb-interval-id'))
           removeMissile(getRemoveIndex)
-          removeBomb(getRemoveIndex)
-          score += 50
-          currScore.innerText = score
-          console.log('first spot!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+          cell.classList.add('bombHit')
+          setTimeout(() => {
+            removeBomb(getRemoveIndex)
+            cell.classList.remove('bombHit')
+            score += 50
+            currScore.innerText = Number(score).toLocaleString()
+            overlapScorer = false
+          }, 190)
         }
         // Missile and bombs clashing mid-flight — one cell apart
         if (currentCellDataIndex >= width) {
-          if ((cell.classList.contains('missile')) && (aboveCell.classList.contains('bomb'))) {
+          if ((cell.classList.contains('missile')) && (aboveCell.classList.contains('bomb')) && !apartScorer) {
+            apartScorer = true
             // Find the cell where the collision occurred
             let getRemoveIndex = cell.getAttribute('data-index')
-            // ! Perhaps a timeout here to delay the impact?
-            // ! Animation on middle cell
             clearInterval(cell.getAttribute('missile-interval-id'))
             clearInterval(aboveCell.getAttribute('bomb-interval-id'))
-            removeMissile(getRemoveIndex)
-            removeBomb(aboveCellDataIndex)
-            score += 50
-            currScore.innerText = score
-            console.log('second spot!')
+            setTimeout(() => {
+              removeMissile(getRemoveIndex)
+              aboveCell.classList.add('bombHit')
+            }, 100)
+            setTimeout(() => {
+              removeBomb(getRemoveIndex - width)
+              aboveCell.classList.remove('bombHit')
+              score += 50
+              currScore.innerText = Number(score).toLocaleString()
+              apartScorer = false
+            }, 290)
           }
         }
         // Bomb hit on user
@@ -298,56 +331,124 @@ function init() {
           clearInterval(cell.getAttribute('bomb-interval-id'))
           removeBomb(getRemoveIndex)
           lives--
+          shakeBody()
           currLives.innerText = lives ? '❤️'.repeat(lives) : '💔'
           if (lives === 0) {
             endGameDefeat()
+            return
           }
+        }
+        if (cell.classList.contains('missile') && (currentCellDataIndex > 7 && currentCellDataIndex < 11) && !goalScored) {
+          goalScored = true
+          goalAnimation()
+          score += 25
+          currScore.innerText = Number(score).toLocaleString()
+          setTimeout(() => {
+            cell.classList.remove('missile')
+            goalScored = false
+          }, 150)
         }
       })
     }, 10)
   }
 
-  function endGameDefeat() {
-    console.log('Game over!')
+  function endGame() {
     document.removeEventListener('keydown', userAction)
-    // console.log(shipInterval)
-    // console.log(bombDropInterval)
     clearTimeout(shipInterval)
     clearInterval(bombDropInterval)
+    clearInterval(collisionInterval)
+    goalFlash.classList.remove('goal')
+    body.classList.remove('shake')
     const allCells = document.querySelectorAll('.cell')
     allCells.forEach(cell => {
-      if (cell.getAttribute('missile-interval-id')) {
-        clearInterval(cell.getAttribute('missile-interval-id'))
-      }
-      if (cell.getAttribute('bomb-interval-id')) {
-        clearInterval(cell.getAttribute('bomb-interval-id'))
-      }
+      cell.remove()
     })
+    startBtn.disabled = false
+    cells = []
+    lives = 5
+    leftToRight = true
+    missileActive = false
+    shipArray = [22, 23, 24, 26, 28, 29, 30, 32, 33, 34, 41, 45, 47, 51, 53, 60, 61, 64, 66, 67, 70, 71, 72, 79, 83, 85, 89, 91, 98, 102, 104, 108, 110]
+    userCurrentPosition = userStartingPosition
+    // Brute-force way of clearing all intervals (assuming less than 999 have been created)
+    for (let i = 0; i < 999; i++) {
+      clearInterval(i)
+    }
+    listIntervals = []
+  }
+
+  function playLuka() {
+    gridWrapper.classList.add('modric-gif')
+    setTimeout(() => {
+      gridWrapper.classList.remove('modric-gif')
+      startBtn.innerText = 'Next!'
+      startBtn.style.display = "block"
+      endSlider()
+    }, 4500)
+  }
+
+  function playVAR() {
+    gridWrapper.classList.add('var-gif')
+    setTimeout(() => {
+      gridWrapper.classList.remove('var-gif')
+      startBtn.innerText = 'Start!'
+      startBtn.style.width = '100px'
+      startBtn.style.display = 'block'
+      endSlider()
+    }, 3800)
+    level = 1
+  }
+
+  function startSlider() {
+    setTimeout(() => {
+      controlsAndScores.classList.add('slide-out-controls')
+      controlsAndScores.classList.remove('slide-in-controls')
+    }, 10) 
+    setTimeout(() => {
+      game.classList.add('slide-out-game')
+      game.classList.remove('slide-in-game')
+    }, 10)
+  }
+
+  function endSlider() {
+    setTimeout(() => {
+      controlsAndScores.classList.add('slide-in-controls')
+      controlsAndScores.classList.remove('slide-out-controls')
+    }, 10) 
+    setTimeout(() => {
+      game.classList.add('slide-in-game')
+      game.classList.remove('slide-out-game')
+    }, 10)
+  }
+
+  function endGameDefeat() {
+    score = 0
+    endGame()
+    playVAR()
   }
 
   function endGameVictory() {
-    document.removeEventListener('keydown', userAction)
-    // console.log(shipInterval)
-    // console.log(bombDropInterval)
-    clearTimeout(shipInterval)
-    clearInterval(bombDropInterval)
-    const allCells = document.querySelectorAll('.cell')
-    allCells.forEach(cell => {
-      if (cell.getAttribute('missile-interval-id')) {
-        clearInterval(cell.getAttribute('missile-interval-id'))
-      }
-      if (cell.getAttribute('bomb-interval-id')) {
-        clearInterval(cell.getAttribute('bomb-interval-id'))
-      }
-    })
     if (score > highscore) {
-      highscore = console.log
       localStorage.setItem('highscore', score)
-      highscore.innerText = localStorage.getItem('highscore')
+      highScoreText.innerText = Number(score).toLocaleString()
+    }
+    endGame()
+    level++
+    playLuka()
+  }
+
+  function toggleMute() {
+    if (audioBtn.classList.contains('audio-button-mute')) {
+      audioBtn.classList.remove('audio-button-mute')
+      audioBtn.classList.add('audio-button-playing')
+    } else {
+      audioBtn.classList.remove('audio-button-playing')
+      audioBtn.classList.add('audio-button-mute')
     }
   }
 
   startBtn.addEventListener('click', startGame)
+  audioBtn.addEventListener('click', toggleMute)
 
 }
 
